@@ -6,7 +6,7 @@ module mult_128_tb;
    reg clk;
    reg rst;
    reg [63:0] input_a_tdata;
-   reg [63:0]  input_b_tdata;
+   reg [63:0] input_b_tdata;
    reg 	      input_a_tvalid;
    reg 	      input_b_tvalid;
    reg 	      output_tready;
