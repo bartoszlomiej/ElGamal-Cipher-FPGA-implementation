@@ -26,7 +26,8 @@ module mult_64_pipeline_2(
    wire 					    data_tready;
    wire 					    a_output_tvalid, d_output_tvalid, e_output_tvalid;
    
-   wire [31:0] 					    a, d, e;
+   wire [31:0] 					    a, d;
+   wire [33:0] 					    e;
    reg [31:0] 					    a_reg, d_reg;
    reg [33:0] 					    e_reg = 0;
    
