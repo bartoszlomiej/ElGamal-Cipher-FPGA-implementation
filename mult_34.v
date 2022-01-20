@@ -1,31 +1,27 @@
-`timescale 1ns / 1ps
-
-
-//unsigned multiplication of two SIZE/2 bit numbers
-module mult_32_pipeline_2 (
+module mult_34 (
 		input wire 	   clk, rst,
 				      // using AXI stream inputs
-		wire [15:0] 	   input_a_tdata,
+		wire [16:0] 	   input_a_tdata,
 		input wire 	   input_a_tvalid,
 		output wire 	   input_a_tready,
 				      
-		input wire [15:0]  input_b_tdata,
+		input wire [16:0]  input_b_tdata,
 		input wire 	   input_b_tvalid, 
 		output wire 	   input_b_tready,
 				      // using AXI stream outputs
-		output wire [31:0] output_tdata,
+		output wire [33:0] output_tdata,
 		output wire 	   output_tvalid, 
 		input wire 	   output_tready
 		);
    
-   reg [31 : 0] 		   output_reg0 = 0;
-   reg [31 : 0] 		   output_reg1 = 0;
+   reg [33 : 0] 		   output_reg0 = 0;
+   reg [33 : 0] 		   output_reg1 = 0;
    
-   reg [15 : 0] 	   input_a_reg0 = 0;
-   reg [15 : 0] 	   input_a_reg1 = 0;
+   reg [16 : 0] 	   input_a_reg0 = 0;
+   reg [16 : 0] 	   input_a_reg1 = 0;
 
-   reg [15 : 0] 	   input_b_reg0 = 0;
-   reg [15 : 0] 	   input_b_reg1 = 0;
+   reg [16 : 0] 	   input_b_reg0 = 0;
+   reg [16 : 0] 	   input_b_reg1 = 0;
 
    reg [2:0] 		   out_valid = 0;
    

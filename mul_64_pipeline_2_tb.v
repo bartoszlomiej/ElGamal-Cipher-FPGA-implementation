@@ -40,8 +40,10 @@ module mult_64_pipeline_2_tb;
 		// Initialize Inputs
 		clk = 0;
 		rst = 0;
-		input_a_tdata = 32'd13321234;
-		input_b_tdata = 32'd54412351;
+//		input_a_tdata = 32'd13321234;
+//		input_b_tdata = 32'd54412351;
+	   input_a_tdata = 32'd1343301346;
+	   input_b_tdata = 32'd2955067115;
 		#5;
 		input_a_tvalid = 1;
 		input_b_tvalid = 1;
