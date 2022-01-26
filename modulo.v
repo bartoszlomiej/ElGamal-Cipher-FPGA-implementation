@@ -1,10 +1,5 @@
 `timescale 1ns / 1ps
 
-/*
- * TODO:
- * assign AXI stream outputs and inputs to make any sens out of it.
- */
-
 module modulo #(parameter SIZE = 64)
    (
     input wire 		     clk, rst,
@@ -42,8 +37,8 @@ module modulo #(parameter SIZE = 64)
 	if(rst) begin
 	   dividen <= 0;
 	   divisor <= 0;
-
 	   reminder <= 0;
+	   state <= 2'b00;
 	   out_valid <= 0;
 	end else begin
 	   if(state == 2'b00) begin

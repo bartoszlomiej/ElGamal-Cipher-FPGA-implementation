@@ -40,7 +40,6 @@ module modular_exponentiation #(parameter SIZE = 64)
    reg 			     out_valid;
    
    reg 			     state = 0;
-   reg 			     switch = 0; //switch between calculation of multiplication and modulo
    
    wire 		     mult_output_rdy;
    wire 		     mult_base_rdy;
@@ -53,7 +52,8 @@ module modular_exponentiation #(parameter SIZE = 64)
    reg 			     base_rdy = 0;   
    reg 			     mult_output_rst = 0;
    reg 			     mult_base_rst = 0;
-   
+   reg 			     save_output = 1;
+   reg 			     save_base = 1;
    
    assign output_tdata = output_reg;
    assign input_rdy = input_base_tvalid & input_power_tvalid & input_modulus_tvalid;
@@ -114,24 +114,37 @@ module modular_exponentiation #(parameter SIZE = 64)
 	      end
 	   end else if (state == 1) begin
 	      if(power >= 0) begin
-		 if(mult_output_rdy) begin
-		    output_reg <= output_wire;
-		    rdy <= 0;
-		    base_rdy <= 1;
-		    mult_output_rst <= 1;
+		 if(mult_output_rdy == 1) begin
+		    if(save_output == 1) begin
+		       output_reg <= output_wire;
+		       rdy <= 0;
+		       base_rdy <= 1;
+		       mult_output_rst <= 1;
+		       save_output <= 0;
+		       save_base <= 1;
+		    end
 		 end
-
-		 if(mult_base_rdy)
+//		 if(mult_output_rst == 1) mult_output_rst <= 0;
+		 
+		 if(mult_base_rdy == 1)
 		   begin
-		      base <= base_wire;
-		      power <= power >> 1;
-		      if(base_rdy) begin
-			 base_rdy <= 0;
-			 rdy <= 1;			 
+		      if(save_base == 1) begin
+			 base <= base_wire;
+			 power <= power >> 1;
+			 if(base_rdy) begin
+			    base_rdy <= 0;
+			    rdy <= 1;	
+			    mult_base_rst <= 1;
+			    mult_output_rst <= 0;
+			 end
+//			 if(mult_base_rst == 1) begin
+//			   mult_base_rst <= 0;
+			    save_base <= 0;
+			    save_output <= 1; //this might be an issue
+//			 end
 		      end
 		   end
-		 if(mult_output_rst == 1) mult_output_rst <= 0;
-		 if(mult_base_rst == 1) mult_base_rst <= 0;
+
 	      end // if (power >= 0)
 	      else begin
 		 rdy <= 0;

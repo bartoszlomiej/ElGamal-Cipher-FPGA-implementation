@@ -1,10 +1,5 @@
 `timescale 1ns / 1ps
 
-/*
- * TODO:
- * assign AXI stream outputs and inputs to make any sens out of it.
- */
-
 module multiplication_modulo #(parameter SIZE = 64)
    (
     input wire 		     clk, rst,
@@ -44,11 +39,15 @@ module multiplication_modulo #(parameter SIZE = 64)
    reg 			     data_read = 0;
    
    wire 		     input_rdy;
-   assign input_rdy = input_multiplier_tvalid & input_multiplicand_tvalid & output_tready & (!switch) & (!rst) & data_read;
+   wire 		     input_read;
 
-   assign output_tvalid = out_valid;
-   assign output_tdata = output_reg;
    
+   assign input_rdy = output_tready & (!switch) & (!rst) & data_read;
+   assign input_read = input_multiplier_tvalid & input_multiplicand_tvalid & input_modulus_tvalid;
+   
+   assign output_tvalid = out_valid & (!rst);
+   assign output_tdata = output_reg;
+   assign input_multiplicand_tready = data_read;
    
    mult_128 mult(
 		 .clk(clk),
@@ -65,7 +64,7 @@ module multiplication_modulo #(parameter SIZE = 64)
    modulo mod(
 	      .clk(clk), 
 	      .rst(rst), 
-	      .input_dividen_tdata(mult_output_reg), 
+	      .input_dividen_tdata(mult_output_reg),
 	      .input_dividen_tvalid(mod_rdy), 
 	      //			       .input_dividen_tready(dividen_tready), 
 	      .input_divisor_tdata(modulus), 
@@ -82,24 +81,28 @@ module multiplication_modulo #(parameter SIZE = 64)
 	   multiplier <= 0;
 	   multiplicand <= 0;
 	   modulus <= 0;
-	   
 	   out_valid <= 0;
-	end
-	if(data_read == 0) begin
-	   multiplier <= input_multiplier_tdata;
-	   multiplicand <= input_multiplicand_tdata;
-	   modulus <= input_modulus_tdata;
-	   
-	   data_read <= 1;
-	end else if(switch) begin
-	   if(mod_rdy == 0) begin
-	      mult_output_reg <= mult_output_wire;
-	      mod_rdy <= 1;
-	   end
+	   mult_output_reg <= 0;
+	   data_read <= 0;
+	   output_reg <= 0;
+	   mod_rdy <= 0;
+	end else begin
+	   if(data_read == 0) begin
+	      multiplier <= input_multiplier_tdata;
+	      multiplicand <= input_multiplicand_tdata;
+	      modulus <= input_modulus_tdata;
+	      if(input_read) data_read <= 1;
+	   end else if(switch) begin
+	      if(mod_rdy == 0) begin
+		 mult_output_reg <= mult_output_wire;
+		 mod_rdy <= 1;
+	      end
 
-	end
-	if(output_rdy) begin
-	   output_reg <= output_wire;
+	   end
+	   if(output_rdy) begin
+	      output_reg <= output_wire;
+	      out_valid <= 1;
+	   end
 	end
      end
 endmodule

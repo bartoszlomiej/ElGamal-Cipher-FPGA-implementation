@@ -91,6 +91,11 @@ module mult_128(
    /* Pipelined version */
 
    always @(posedge clk) begin
+      if(rst) begin
+	 rdy_flg <= 3'b000;
+	 output_reg <= 0;
+      end
+      
       if(karatsuba_rdy) begin
 	 if(rdy_flg[1:0] == 2'b00) begin
 	    a_reg <= a;

@@ -43,7 +43,8 @@ module modulo_tb #(parameter SIZE = 128);
    initial begin
       // Initialize Inputs
       rst = 0;
-      dividen = 128'd3068845272377378551;
+//      dividen = 128'd3068845272377378551;
+      dividen = 128'd20610496227029426887129;
       dividen_tvalid = 1;
       divisor = 64'd69814;
       divisor_tvalid = 1;
