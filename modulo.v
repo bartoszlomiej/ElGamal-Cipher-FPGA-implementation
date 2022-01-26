@@ -1,5 +1,10 @@
 `timescale 1ns / 1ps
 
+/*
+ * TODO:
+ * assign AXI stream outputs and inputs to make any sens out of it.
+ */
+
 module modulo #(parameter SIZE = 128)
    (
     input wire 		     clk, rst,
@@ -30,13 +35,12 @@ module modulo #(parameter SIZE = 128)
    wire 		     input_rdy = input_dividen_tvalid & input_divisor_tvalid;
 
    assign output_tdata = reminder;
-   
-   
+   assign output_tvalid = out_valid;
+      
    always @(posedge clk)
      begin
 	if(rst) begin
 	   dividen <= 0;
-
 	   divisor <= 0;
 
 	   reminder <= 0;
@@ -57,18 +61,20 @@ module modulo #(parameter SIZE = 128)
 	      if(new_divisor < dividen) begin
 		 prev_divisor <= new_divisor;	      
 		 new_divisor <= prev_divisor << 1;
-
-		 state <= 2'b10;
-	      end
+	      end else state <= 2'b10;
+	      
 	   end else if(state == 2'b10) begin
-	      dividen = dividen - prev_divisor;
+	      dividen <= dividen - prev_divisor;
 	      
 	      state <= 2'b11;
 	   end else if(state == 2'b11) begin
 	      if(dividen > divisor) begin
-		 dividen = dividen - divisor;
+		 if(prev_divisor >= divisor) begin
+		    if(dividen > prev_divisor) dividen <= dividen - prev_divisor;
+		    else prev_divisor <= prev_divisor >> 1;
+		 end
 	      end else begin
-		 reminder = dividen;
+		 reminder <= dividen;
 		 out_valid <= 1;
 	      end
 	   end

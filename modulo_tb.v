@@ -30,6 +30,7 @@ module modulo_tb #(parameter SIZE = 128);
 	      .output_tdata(output_tdata), 
 	      .output_tvalid(output_tvalid), 
 	      .output_tready(output_tready)
+	      
 	      );
    
    initial begin
@@ -42,9 +43,9 @@ module modulo_tb #(parameter SIZE = 128);
    initial begin
       // Initialize Inputs
       rst = 0;
-      dividen = 128'd143563;
+      dividen = 128'd3068845272377378551;
       dividen_tvalid = 1;
-      divisor = 128'd2137;
+      divisor = 128'd69814;
       divisor_tvalid = 1;
       output_tready = 0;
       #5;
