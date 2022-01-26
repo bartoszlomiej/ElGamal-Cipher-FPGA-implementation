@@ -9,14 +9,14 @@ module multiplication_modulo_tb #(parameter SIZE = 64);
    reg 			multiplier_tvalid;
    reg [SIZE-1 : 0] multiplicand;
    reg 			multiplicand_tvalid;
-   reg [(SIZE*2)-1 : 0] modulus;
+   reg [SIZE-1 : 0] modulus;
    reg 			modulus_tvalid;
    reg 			output_tready;
 
    // Outputs
    wire 		multiplier_tready;
    wire 		multiplicand_tready;
-   wire [(SIZE*2)-1 : 0] 	output_tdata;
+   wire [SIZE-1 : 0] 	output_tdata;
    wire 		output_tvalid;
    
 
@@ -52,7 +52,7 @@ module multiplication_modulo_tb #(parameter SIZE = 64);
       multiplier_tvalid = 1;
       multiplicand = 64'd21376213;
       multiplicand_tvalid = 1;
-      modulus = 128'd69814;
+      modulus = 64'd69814;
       modulus_tvalid = 1;
       
       output_tready = 0;

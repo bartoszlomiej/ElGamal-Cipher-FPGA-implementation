@@ -7,15 +7,15 @@ module modulo_tb #(parameter SIZE = 128);
    reg rst;
    reg [SIZE-1 : 0] dividen;
    reg 		    dividen_tvalid;
-   reg [SIZE-1 : 0] divisor;
+   reg [(SIZE/2)-1 : 0] divisor;
    reg 		    divisor_tvalid;
    reg 		    output_tready;
 
    // Outputs
    wire 	    dividen_tready;
    wire 	    divisor_tready;
-   wire [SIZE-1 : 0] output_tdata;
-   wire 	     output_tvalid;
+   wire [(SIZE/2)-1 : 0] output_tdata;
+   wire 		 output_tvalid;
 
    // Instantiate the Unit Under Test (UUT)
    modulo uut(
@@ -45,7 +45,7 @@ module modulo_tb #(parameter SIZE = 128);
       rst = 0;
       dividen = 128'd3068845272377378551;
       dividen_tvalid = 1;
-      divisor = 128'd69814;
+      divisor = 64'd69814;
       divisor_tvalid = 1;
       output_tready = 0;
       #5;

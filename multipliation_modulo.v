@@ -17,33 +17,34 @@ module multiplication_modulo #(parameter SIZE = 64)
     input wire 		     input_multiplicand_tvalid, 
     output wire 	     input_multiplicand_tready,
     // using AXI stream inputs
-    wire [(SIZE*2)-1 : 0] 	     input_modulus_tdata,
+    wire [SIZE-1 : 0] 	     input_modulus_tdata,
     input wire 		     input_modulus_tvalid,
     output wire 	     input_modulus_tready,
     // using AXI stream outputs
-    output wire [(SIZE*2)-1 : 0] output_tdata,
+    output wire [SIZE-1 : 0] output_tdata,
     output wire 	     output_tvalid, 
     input wire 		     output_tready
     );
    
    reg [SIZE-1 : 0] 	     multiplier = 0;
    reg [SIZE-1 : 0] 	     multiplicand = 0;
-   reg [(SIZE*2)-1 : 0] 	     modulus = 0;
+   reg [SIZE-1 : 0] 	     modulus = 0;
 
-   reg [(SIZE*2)-1 : 0] 	     output_reg;
-   wire [(SIZE*2)-1 : 0] 	     mult_output_wire;
-   wire [(SIZE*2)-1 : 0] 	     output_wire;
+   reg [SIZE-1 : 0] 	     output_reg;
+   reg [(SIZE*2)-1 : 0]      mult_output_reg;
+   wire [(SIZE*2)-1 : 0]     mult_output_wire;
+   wire [SIZE-1 : 0] 	     output_wire;
    reg 			     out_valid;
 
    wire 		     switch;
    wire 		     output_rdy;
-// = 0;
+
    reg 			     mod_rdy = 0;
-// = 0;
+
    reg 			     data_read = 0;
    
-   
-   wire 		     input_rdy = input_multiplier_tvalid & input_multiplicand_tvalid & (!switch) & (!rst) & data_read;
+   wire 		     input_rdy;
+   assign input_rdy = input_multiplier_tvalid & input_multiplicand_tvalid & output_tready & (!switch) & (!rst) & data_read;
 
    assign output_tvalid = out_valid;
    assign output_tdata = output_reg;
@@ -64,7 +65,7 @@ module multiplication_modulo #(parameter SIZE = 64)
    modulo mod(
 	      .clk(clk), 
 	      .rst(rst), 
-	      .input_dividen_tdata(output_reg), 
+	      .input_dividen_tdata(mult_output_reg), 
 	      .input_dividen_tvalid(mod_rdy), 
 	      //			       .input_dividen_tready(dividen_tready), 
 	      .input_divisor_tdata(modulus), 
@@ -92,7 +93,7 @@ module multiplication_modulo #(parameter SIZE = 64)
 	   data_read <= 1;
 	end else if(switch) begin
 	   if(mod_rdy == 0) begin
-	      output_reg <= mult_output_wire;
+	      mult_output_reg <= mult_output_wire;
 	      mod_rdy <= 1;
 	   end
 

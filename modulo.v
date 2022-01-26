@@ -5,11 +5,11 @@
  * assign AXI stream outputs and inputs to make any sens out of it.
  */
 
-module modulo #(parameter SIZE = 128)
+module modulo #(parameter SIZE = 64)
    (
     input wire 		     clk, rst,
     // using AXI stream inputs
-    wire [SIZE-1 : 0] 	     input_dividen_tdata,
+    wire [(SIZE*2)-1 : 0]    input_dividen_tdata,
     input wire 		     input_dividen_tvalid,
     output wire 	     input_dividen_tready,
    
@@ -22,14 +22,14 @@ module modulo #(parameter SIZE = 128)
     input wire 		     output_tready
     );
    
-   reg [SIZE-1 : 0] 	     dividen;
+   reg [(SIZE*2)-1 : 0]      dividen;
    reg [SIZE-1 : 0] 	     divisor;
 
    reg [SIZE-1 : 0] 	     reminder;
    reg 			     out_valid;
    
-   reg [SIZE-1 : 0] 	     new_divisor;
-   reg [SIZE-1 : 0] 	     prev_divisor;
+   reg [(SIZE*2)-1 : 0]      new_divisor;
+   reg [(SIZE*2)-1 : 0]      prev_divisor;
    reg [1:0] 		     state = 0;
 
    wire 		     input_rdy = input_dividen_tvalid & input_divisor_tvalid;
