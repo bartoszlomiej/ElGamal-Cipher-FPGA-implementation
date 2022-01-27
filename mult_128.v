@@ -93,29 +93,32 @@ module mult_128(
    always @(posedge clk) begin
       if(rst) begin
 	 rdy_flg <= 3'b000;
+	 a_reg <= 0;
+	 e_reg <= 0;
+	 d_reg <= 0;
 	 output_reg <= 0;
-      end
-      
-      if(karatsuba_rdy) begin
-	 if(rdy_flg[1:0] == 2'b00) begin
-	    a_reg <= a;
-	    e_reg <= e;
-	    d_reg <= d;
-	    rdy_flg <= 3'b001;
-	 end	 
-	 if(rdy_flg == 3'b001) begin
-	    output_reg <= a_reg << (64);
-	    e_reg <= e_reg - d_reg - a_reg;
-	    rdy_flg <= 3'b10;
-	 end
-	 else if (rdy_flg == 3'b010) begin
-	    bufer_reg <= e_reg << (32);
-	    rdy_flg <= 3'b011;
-	 end
-	 else if (rdy_flg == 3'b011) begin
-	    output_reg <= output_reg + bufer_reg + d_reg;	    
-	    rdy_flg <= 3'b100;
-	 end
-      end // if (calculate_e)
+      end else begin
+	 if(karatsuba_rdy) begin
+	    if(rdy_flg[1:0] == 2'b00) begin
+	       a_reg <= a;
+	       e_reg <= e;
+	       d_reg <= d;
+	       rdy_flg <= 3'b001;
+	    end	 
+	    if(rdy_flg == 3'b001) begin
+	       output_reg <= a_reg << (64);
+	       e_reg <= e_reg - d_reg - a_reg;
+	       rdy_flg <= 3'b10;
+	    end
+	    else if (rdy_flg == 3'b010) begin
+	       bufer_reg <= e_reg << (32);
+	       rdy_flg <= 3'b011;
+	    end
+	    else if (rdy_flg == 3'b011) begin
+	       output_reg <= output_reg + bufer_reg + d_reg;	    
+	       rdy_flg <= 3'b100;
+	    end
+	 end // if (calculate_e)
+      end // else: !if(rst)
    end
 endmodule

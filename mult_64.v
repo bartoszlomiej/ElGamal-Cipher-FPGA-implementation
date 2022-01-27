@@ -91,26 +91,34 @@ module mult_64_pipeline_2(
    /* Pipelined version */
 
    always @(posedge clk) begin
-      if(karatsuba_rdy) begin
-	 if(rdy_flg[1:0] == 2'b00) begin
-	    a_reg <= a;
-	    e_reg <= e;
-	    d_reg <= d;
-	    rdy_flg[1:0] <= 2'b01;
-	 end	 
-	 if(rdy_flg[1:0] == 2'b01) begin
-	    output_reg <= a_reg << (32);
-	    e_reg <= e_reg - d_reg - a_reg;
-	    rdy_flg[1:0] <= 2'b10;
-	 end
-	 else if (rdy_flg[1:0] == 2'b10) begin
-	    bufer_reg <= e_reg << (16);
-	    rdy_flg[1:0] <= 2'b11;
-	 end
-	 else if (rdy_flg[1:0] == 2'b11) begin
-	    output_reg <= output_reg + bufer_reg + d_reg;	    
-	    rdy_flg <= 3'b100;
-	 end
-      end // if (calculate_e)
+      if(rst) begin
+	 rdy_flg <= 2'b00;
+	 output_reg <= 0;
+	 a_reg <= a;
+	 e_reg <= e;
+	 d_reg <= d;	 
+      end else begin 
+	 if(karatsuba_rdy) begin
+	    if(rdy_flg[1:0] == 2'b00) begin
+	       a_reg <= a;
+	       e_reg <= e;
+	       d_reg <= d;
+	       rdy_flg[1:0] <= 2'b01;
+	    end	 
+	    if(rdy_flg[1:0] == 2'b01) begin
+	       output_reg <= a_reg << (32);
+	       e_reg <= e_reg - d_reg - a_reg;
+	       rdy_flg[1:0] <= 2'b10;
+	    end
+	    else if (rdy_flg[1:0] == 2'b10) begin
+	       bufer_reg <= e_reg << (16);
+	       rdy_flg[1:0] <= 2'b11;
+	    end
+	    else if (rdy_flg[1:0] == 2'b11) begin
+	       output_reg <= output_reg + bufer_reg + d_reg;	    
+	       rdy_flg <= 3'b100;
+	    end
+	 end // if (calculate_e)
+      end // else: !if(rst)
    end
 endmodule   
