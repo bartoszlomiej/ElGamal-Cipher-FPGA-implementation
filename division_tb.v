@@ -1,20 +1,20 @@
 `timescale 1ns / 1ps
 
-module division_tb #(parameter SIZE = 128);
+module division_tb #(parameter SIZE = 64);
 
    // Inputs
    reg clk;
    reg rst;
    reg [SIZE-1 : 0] dividen;
    reg 		    dividen_tvalid;
-   reg [(SIZE/2)-1 : 0] divisor;
+   reg [SIZE-1 : 0] divisor;
    reg 			divisor_tvalid;
    reg 			output_tready;
 
    // Outputs
    wire 		dividen_tready;
    wire 		divisor_tready;
-   wire [(SIZE)-1 : 0] 	output_tdata;
+   wire [SIZE-1 : 0] 	output_tdata;
    wire 		 output_tvalid;
 
    // Instantiate the Unit Under Test (UUT)
@@ -44,7 +44,7 @@ module division_tb #(parameter SIZE = 128);
       // Initialize Inputs
       rst = 0;
       //      dividen = 128'd3068845272377378551;
-      dividen = 128'd20610496227029426887129;
+      dividen = 64'd20149227094288729;
 //      dividen = 128'd234095823;
       dividen_tvalid = 1;
       divisor = 64'd69814;
