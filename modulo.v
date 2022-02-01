@@ -44,6 +44,8 @@ module modulo #(parameter SIZE = 64)
 	   reminder <= 0;
 	   state <= 2'b00;
 	   out_valid <= 0;
+	   prev_divisor <= 0;
+	   new_divisor <= 0;
 	end else begin
 	   if(state == 2'b00) begin
 	      if(input_rdy) begin
@@ -63,7 +65,7 @@ module modulo #(parameter SIZE = 64)
 	      end else state <= 2'b10;
 	      
 	   end else if(state == 2'b10) begin
-	      dividen <= dividen - prev_divisor;
+	      if(dividen > prev_divisor) dividen <= dividen - prev_divisor;
 	      
 	      state <= 2'b11;
 	   end else if(state == 2'b11) begin
