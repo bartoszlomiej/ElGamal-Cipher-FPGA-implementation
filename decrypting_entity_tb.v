@@ -5,6 +5,7 @@ module decrypting_entity_tb #(parameter SIZE = 64);
    // Inputs
    reg clk;
    reg rst;
+   reg switch;
    reg [SIZE-1 : 0] p; //just for dbg - size
    reg 		    p_tvalid;
    reg [SIZE-1 : 0] alpha;
@@ -30,7 +31,8 @@ module decrypting_entity_tb #(parameter SIZE = 64);
    // Instantiate the Unit Under Test (UUT)
    decrypting_entity uut(
 			 .clk(clk), 
-			 .rst(rst), 
+			 .rst(rst),
+			 .switch(switch),
 			 .input_first_tdata(p), 
 			 .input_first_tvalid(p_tvalid), 
 //			 .input_first_tready(p_tready), 
@@ -58,6 +60,8 @@ module decrypting_entity_tb #(parameter SIZE = 64);
    initial begin
       // Initialize Inputs
       rst = 0;
+      switch = 0;
+      
       p = 64'd18446744073709551337;
       p_tvalid = 1;
       alpha = 64'd9223372036854775433;
@@ -72,8 +76,17 @@ module decrypting_entity_tb #(parameter SIZE = 64);
       alpha_out_tready = 1;
       public_key_tready = 1;
       
+      
       // Wait 100 ns for global reset to finish
       #200;
+      //decipher
+      if(output_tready) begin
+	 p = 64'd10794478246981970827;
+	 p_tvalid = 1;
+	 alpha = 64'd2422059422088052805;
+	 alpha_tvalid = 1;
+	 switch = 1;
+      end
       
       // Add stimulus here
 

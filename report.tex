@@ -1,0 +1,236 @@
+\documentclass{report}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{listings}
+\usepackage{hyperref}
+
+\title{[ECRYP]\\
+   ElGamal Cipher - hardware implementation}
+\author{Bartłomiej Mastej\\ Album number: 300172}
+
+\begin{document}
+
+\maketitle
+
+%\chapter{Foreword}
+\begin{LARGE}Foreword\end{LARGE}\\
+This report was done for the scope of the ECRYP subject. All code that was made on the purpose of that subject can be found here \\ \url{https://github.com/bartoszlomiej/ElGamal-Cipher-FPGA-implementation}.\\ In order to learn verilog and how the FPGA's are working I spend enormous amount of time, and despite that the level of the code is at most average. At this very moment, I did not succeed at properly implementing the modular inverse (it crushes when large module is being used), and as a result in decryption of the cipher. Nonetheless, I am planing to improve in the near future all the code, moreover, I will try to make the cipher work on relatively large numbers - 2048 keys as it is recommended for the ElGamal cipher. Finally, I hope to successfully implement the code on the FPGA platform as I highly enjoyed every moment that I spent on this project.
+\chapter{Theory introduction}
+\section{Assumptions}
+p, a - 64 bit numbers
+
+\section{ElGamal cipher}
+The algorithm of ElGamal is as follows:\\ \\
+
+Entity A (public key establishment):
+\begin{enumerate}
+\item Generate a large random prime p and a generator $\alpha$ of the multiplicative group $\mathbb{Z}∗_p$ of the integers modulo p
+\item Select a random integer $a, a\in[1, p -− 2]$, and compute $\alpha^a$ mod p
+\item A’s public key is $(p, \alpha, \alpha^a)$; A’s private key is a
+\end{enumerate}
+\\
+Entity B (encryption):
+\begin{enumerate}
+\item Obtain A’s authentic public key $(p, \alpha, \alpha^a)$
+\item Represent the message as an integer m in the range ${0, 1,..., p - 1}$.
+\item Select a random integer $k \in [1, p −- 2]$.
+\item Compute $\gamma = \alpha^k\: mod\: p$ and $\delta = m ·(\alpha^a)^k\: mod\: p$.
+\item Send the ciphertext $c$ = $(\gamma, \delta)$ to A.
+\end{enumerate}
+\\
+Entity A (decryption):
+\begin{enumerate}
+\item Use the private key a to compute $\gamma^{-a} \: mod \: p$
+\item Recover m by computing $\gamma^{-a} \cdot \delta\: mod \: p$
+\end{enumerate}
+\\
+
+\section{Karatsuba multiplication algorithm}
+The core of the whole project was the Karatsuba multipliation algorithm. The main aim of using this algorithm was to make the greates use of all the DSP48A1 Slices which allows to perform extremely fast multiplication of two 18 bits numbers. This solution is rather easy to scale, despite the fact that the moduls have to be implemented via hand. It was decided to use the 64 bit numbers, so as to make the best usage of the DSP48A1 Slices as Spartan 6 XC6SLX9 have only 16 such slices. Below there is presented the major idea behind the Karatsuba algorithm, however, in the implementation there are major changes, as modules and the variables are of the fixed size, hence in order to save resources there was a need to create separate moduls for each size. The structure of the implemented Karatsuba algorithm is presented on the figure \ref{figure: 1}.\\ \\
+Assumptions:
+Input: $x, y \in\mathbb{N}$\\
+Output: $x \cdot $\\
+Additional informations: let $x = x_Hx_L$, $y = y_Hy_L$ - where subscript $H$ represents the high bits and $L$ represents the lower bits.\\
+Mathematical description:\\
+$a = x_H \cdot y_H$\\
+$d = x_L \cdot y_L$\\
+$e = (x_H + y_H) \cdot (x_L + y_L) - a - d$\\
+$x \cdot y = a\cdot2^n + e\cdot2^{\frac{n}{2}} + d$, where $n$ - is width of $x$,
+\begin{lstlisting}[caption=Karatsuba algorithm]
+def karatsuba(x,y):
+    if x < 2**18 and y < 2**18:
+        return x*y
+
+    n = max(len(str(x)), len(str(y)))
+    m = ceil(n/2) 
+
+    x_H  = floor(x / 10**m)
+    x_L = x % (10**m)
+
+    y_H = floor(y / 10**m)
+    y_L = y % (10**m)
+
+    a = karatsuba(x_H,y_H)
+    d = karatsuba(x_L,y_L)
+    e = karatsuba(x_H + x_L, y_H + y_L) - a - d
+
+    return int(a*(10**(m*2)) + e*(10**m) + d)
+\end{lstlisting}  
+\\ \\On the figure below there is shown the basic principle of the Karatsuba algorithm - divide and conquer approach. Blocks Mult $x$ represents the multiplication, where $x$ is the bit size of multiplication result. One can spot, that the result of the "e" operation is bigger than the rest of the same level by two bits. It results from the fact that $e = (x_H + y_H) \cdot (x_L + y_L)$, thus the result of addition $(x_H + y_H)$ or $(x_L + y_L)$ in the worst case can be equal $2 \cdot sizeof(x_H)$.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.5]{karatsuba.png}
+  \caption{Basic principle of the karatsuba algorithm}
+  \label{figure: 1}
+\end{figure}
+
+\section{Modulo operation}
+The modulo algorithm presented below works in the following manner - firstly there are performed shifts of the divisor in order to make further each subtraction the most efficient, as the most efficient subtraction in this case is subtraction of the biggest divisor's multiple all the time. What should be also noticed is that multiplication is being perfomed via shifting and only primitive operations are being used.\\ \\
+Assumptions:\\
+Input: $num \in\mathbb{N},\: divisor\in\mathbb{N}$\\
+Output: $n\: mod\: divisor $\\
+\begin{lstlisting}[caption=Modulo algorithm]
+def mod(num, divisor):
+     prev_num = 0;  
+     new_divisor = divisor << 1
+     while(new_divisor < num):
+         prev_div = new_divisor 
+         new_divisor = new_divisor << 1 
+     num -= prev_div 
+     while(num > divisor): 
+         if(prev_div >= divisor):
+             if(num > prev_div):
+                 num -= prev_div 
+             else:
+                 prev_divisor = prev_divisor >> 1
+     return prev_num
+\end{lstlisting}
+\section{Division}
+The division algorithm works on the basis of the same principle as the modulo algorithm, thus no additional explanation is to be provided.\\ \\
+Assumptions:\\
+Input: $num \in\mathbb{N},\: divisor\in\mathbb{N}$\\
+Output: $n \div divisor$ \\
+\begin{lstlisting}[caption=Division algorithm]
+def div(num, divisor):
+     quotient = 1
+     new_divisor = divisor << 1
+     while(new_divisor < num):  
+         prev_div = new_divisor 
+         new_divisor = new_divisor << 1 
+         quotient << 1 
+     buffer = quotient 
+     num -= prev_div 
+     while(num > divisor): 
+         if(prev_div >= divisor):
+            if(num >= prev_div):
+                 num -= prev_div 
+                 qoutient += buffer 
+             else:
+                 prev_divisor = prev_divisor >> 1
+                 buffer >> 1
+     return quotient 
+\end{lstlisting}
+
+\section{Modular exponentiation algorithm}
+It was decided to use binary modular exponentiation algorithm, as despite the fact that there is a need to performe the modulo operation numerous times, the only division is being done via shifting. \\ \\
+Assumptions:\\
+Input: $p \in\mathbb{P}, a\in[1,p-1], b\in\mathbb{N}$\\
+Output: $a^{p}\: mod\: p$ \\
+\begin{lstlisting}[caption=Modular exponentiation algorithm]
+def modular_eponentiation(a, b, p):
+    a %= p
+    res = 1
+    while (b > 0):
+        if (b & 1):
+            res = res * a % p
+        print(a)
+        a = a * a % p
+        b = b >> 1
+    return res  
+\end{lstlisting}\\
+Further possible improvements:\\
+
+By Fermat's little theorem:
+\begin{equation} %\label{eq1}
+  x^n(mod\: m) = x^{n (mod\: \varphi(m))}(mod\: m)
+\end{equation}
+where $GDC(x, m) = 1$, $x,n,m\in \mathbb{N}$.\\
+
+Modular exponentiation will be always performed modulo $p$; where $p\in\mathbb{P}$, thus by Fermat's little theorem:
+\begin{equation} %\label{eq1}
+  x^n(mod\: p) = x^{n (mod\: p - 1)}(mod\: p)
+\end{equation}
+
+\section{Multiplicative inverse}
+In order to perform the multiplicative inverse there was chosen to use the Extended Binary GCD algorithm, also called the Extended Stein's algorithm. The EBGCD algorithm is believed to be highly suitable, as it does not require to divide, nor to perform modulo, which are both time consuming operations.\\ \\
+Assumptions:\\
+Input: $p \in\mathbb{P}, a\in[1,p-1]$\\
+Output: $a^{-1}\: mod\: p$ \\
+\begin{lstlisting}[caption=Binary multiplicative inverse algorithm]
+def gcd(a, b):
+    u = a
+    v = b
+
+    x1 = 1
+    x2 = 0
+
+    while ((u != 1) and (v != 1)):
+        while (u % 2 == 0):
+            u /= 2
+            if (x1 % 2 == 0):
+                x1 /= 2
+            else:
+                x1 = (x1 + b) / 2
+        while (v % 2 == 0):
+            v /= 2
+            if (x2 % 2 == 0):
+                x2 /= 2
+            else:
+                x2 = (x2 + b) / 2
+        if (u >= v):
+            u = u - v
+            x1 = x1 - x2
+        else:
+            v = v - u
+            x2 = x2 - x1
+    if u == 1:
+        return x1 % b
+    else:
+        return x2 % b
+\end{lstlisting}
+\chapter{Architecture overview}
+\section{Mealy and Moore machines in verilog}
+/*przyklad kodu z automatem mealy'a i moore'a*/
+\section{AXI stream}
+/*Wykorzystanie ich przeze mnie i krotko o nich*/
+\section{DSP blocks}
+/*Ewentualnie --- krotki opis*/
+\section{LFSR pseudo random numbers}
+/*krotki opis; zastosowanie w projekcie*/
+Remeber to describe that as the seed is p, and the output must be smaller than p, hence at least very basic randomness is being provided
+
+\section{Program files}
+/*pokaż listę plików, krótko opisz co każdy robi i jeśli to możliwe zależnosci między nimi*/
+\subsubsection{plik 1}
+
+\chapter{Testing}
+\section{Main function} --------rename it pls
+/*
+Describe the communication between the encryption and decryption entities, how they switch, and which data they get from "global knowledge"
+*/
+\section{Test benches}
+/*describe the methodology of each module testing*/
+\chapter{Inputs}
+-prime number p of the multiplicative group $\mathbb{Z}_p^* $\\
+-a generator $\alpha$ of the multiplicative group $\mathbb{Z}_p^* $
+
+\chapter{Appendix}
+\section{Bibliography}
+\begin{enumerate}
+\item Comparing ECDSA Hardware Implementations based on Binary and Prime Fields - Michael M̈uhlberghube - Master Thesis - ETH Zurich
+\item  Handbook of Applied Cryptography, by A. Menezes, P. van Oorschot, and S. Vanstone, CRC Press, 1996.
+\end{enumerate}
+\end{document}

@@ -1,13 +1,13 @@
 `timescale 1ns / 1ps
 
-module mult_inverse_tb #(parameter SIZE = 64);
+module mult_inverse_tb #(parameter SIZE = 65);
 
    // Inputs
    reg clk;
    reg rst;
-   reg signed [SIZE-1 : 0] base; //just for dbg - size
+   reg [SIZE-1 : 0] base; //just for dbg - size
    reg 		    base_tvalid;
-   reg signed [SIZE-1 : 0] modulus;
+   reg [SIZE-1 : 0] modulus;
    reg 		    modulus_tvalid;
    reg 		    output_tready;
 
@@ -42,9 +42,13 @@ module mult_inverse_tb #(parameter SIZE = 64);
    initial begin
       // Initialize Inputs
       rst = 0;
-      base = 64'd34359738337;
+//      base = 64'd34359738337;
+      base = 65'd10794478246981970827;
+//      base = 65'd10794478281970827;
       base_tvalid = 1;
-      modulus = 64'd134217689;
+//      modulus = 64'd134217689;
+      modulus = 65'd18446744073709551337;
+//      modulus = 65'd18444073709551337;
       modulus_tvalid = 1;
       
       output_tready = 0;

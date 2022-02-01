@@ -2,7 +2,7 @@
 
 module decrypting_entity #(parameter SIZE = 64)
    (
-    input wire 		     clk, rst,
+    input wire 		     clk, rst, switch,
     // using AXI stream inputs
     wire [SIZE-1 : 0] 	     input_first_tdata,
     input wire 		     input_first_tvalid,
@@ -15,7 +15,7 @@ module decrypting_entity #(parameter SIZE = 64)
     output wire [SIZE-1 : 0] output_a_tdata,
     output wire 	     output_a_tvalid, 
     input wire 		     output_a_tready,
-    
+   
     output wire [SIZE-1 : 0] output_b_tdata,
     output wire 	     output_b_tvalid, 
     input wire 		     output_b_tready,
@@ -28,6 +28,7 @@ module decrypting_entity #(parameter SIZE = 64)
    reg [SIZE-1 : 0] 	     first;
    reg [SIZE-1 : 0] 	     second;
 
+   reg [SIZE-1 : 0] 	     p;
    reg [SIZE-1 : 0] 	     private_key;
    wire [SIZE-1 : 0] 	     private_key_wire;
    wire 		     private_key_ready;
@@ -39,6 +40,10 @@ module decrypting_entity #(parameter SIZE = 64)
    reg [SIZE-1 : 0] 	     output_a_reg;
    reg [SIZE-1 : 0] 	     output_b_reg;
    reg [SIZE-1 : 0] 	     output_c_reg;
+
+   reg [SIZE-1 : 0] 	     inverse;
+   wire [SIZE-1 : 0] 	     inverse_wire;
+   wire 		     inverse_tvalid;
    
    reg 			     out_a_valid, out_b_valid, out_c_valid;
    reg 			     state = 0;
@@ -49,7 +54,7 @@ module decrypting_entity #(parameter SIZE = 64)
 
    reg 			     generate_public_key = 0;
    wire 		     run_public_key = generate_public_key;
-       
+   
    reg 			     data_read = 0;
    wire 		     input_read;
    wire 		     input_rdy = input_first_tvalid & input_second_tvalid;
@@ -79,23 +84,37 @@ module decrypting_entity #(parameter SIZE = 64)
 				.rst(rst_mod_exp), 
 				.input_base_tdata(second),
 				.input_base_tvalid(input_read), 
-//				.input_base_tready(base_tready), 
+				//				.input_base_tready(base_tready), 
 				.input_power_tdata(private_key), 
 				.input_power_tvalid(run_public_key), 
-//				.input_power_tready(power_tready),
+				//				.input_power_tready(power_tready),
 				.input_modulus_tdata(first), 
 				.input_modulus_tvalid(input_read), 
-//				.input_modulus_tready(modulus_tready), 
+				//				.input_modulus_tready(modulus_tready), 
 				.output_tdata(public_key_wire), 
 				.output_tvalid(public_key_ready), 
 				.output_tready(input_read)
 				);
+
+   mult_inverse decrypt(
+			.clk(clk), 
+			.rst(rst), 
+			.input_base_tdata(first), 
+			.input_base_tvalid(input_read), 
+			.input_modulus_tdata(p), 
+			.input_modulus_tvalid(input_read), 
+			.output_tdata(inverse), 
+			.output_tvalid(inverse_tvalid), 
+			.output_tready(input_ready)
+			);
+   
    always @(posedge clk)
      begin
 	if(rst) begin
 	   first <= 0;
 	   second <= 0;
-	   state <= 0;
+	   //	   state <= 0;
+	   data_read <= 0;
 	   out_a_valid <= 0;
 	   out_b_valid <= 0;
 	   out_c_valid <= 0;
@@ -113,6 +132,7 @@ module decrypting_entity #(parameter SIZE = 64)
 		 if(private_key_ready) begin
 		    private_key <= private_key_wire;
 		    generate_private_key <= 0;
+		    p <= first;
 		    if(private_key < (first + 1)) begin
 		       generate_public_key <= 1;
 		       //now let public key be generated
@@ -129,7 +149,10 @@ module decrypting_entity #(parameter SIZE = 64)
 		 end
 	      end
 	   end else begin // if (!state)
-	      
+	      if(switch) begin
+		 $display("xd");
+		 
+	      end
 	      //part 2 - decryption
 	   end
 	end // else: !if(rst)
