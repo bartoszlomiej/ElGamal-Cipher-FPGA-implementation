@@ -49,12 +49,15 @@ module multiplication_modulo_tb #(parameter SIZE = 64);
       // Initialize Inputs
       rst = 0;
 //      multiplier = 64'd143563561627;
-      multiplier = 64'd1;
+      multiplier = 64'd9223372036854775337;
+//      multiplier = 64'd1;
       multiplier_tvalid = 1;
 //      multiplicand = 64'd21376213;
-      multiplicand = 64'd143563561627;
+//      multiplicand = 64'd143563561627;
+      multiplicand = 64'd9223372036854775337;
       multiplicand_tvalid = 1;
-      modulus = 64'd69814;
+//      modulus = 64'd69814;
+      modulus = 64'd9223372036854775433;
       modulus_tvalid = 1;
       
       output_tready = 0;

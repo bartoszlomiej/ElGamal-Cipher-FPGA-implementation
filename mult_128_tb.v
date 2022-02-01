@@ -42,8 +42,10 @@ module mult_128_tb;
    initial begin
       // Initialize Inputs
       rst = 0;
-      input_a_tdata = 64'd123123124443096802;
-      input_b_tdata = 64'd314141255378583275;
+//      input_a_tdata = 64'd123123124443096802;
+//      input_b_tdata = 64'd314141255378583275;
+      input_a_tdata = 64'd9223372036854775337;
+      input_b_tdata = 64'd9223372036854775337;
       #5;
       input_a_tvalid = 1;
       input_b_tvalid = 1;

@@ -40,14 +40,19 @@ module multiplication_modulo #(parameter SIZE = 64)
    
    wire 		     input_rdy;
    wire 		     input_read;
-
+   wire 		     result_zero;
    
    assign input_rdy = output_tready & (!switch) & (!rst) & data_read;
    assign input_read = input_multiplier_tvalid & input_multiplicand_tvalid & input_modulus_tvalid;
    
    assign output_tvalid = out_valid & (!rst);
    assign output_tdata = output_reg;
+   assign input_multiplier_tready = data_read;
    assign input_multiplicand_tready = data_read;
+   assign input_modulus_tready = data_read;
+
+   assign result_zero = (~input_multiplier_tdata) | (~input_multiplicand_tdata);
+   
    
    mult_128 mult(
 		 .clk(clk),
@@ -91,7 +96,14 @@ module multiplication_modulo #(parameter SIZE = 64)
 	      multiplier <= input_multiplier_tdata;
 	      multiplicand <= input_multiplicand_tdata;
 	      modulus <= input_modulus_tdata;
-	      if(input_read) data_read <= 1;
+	      if(input_read) begin
+		 data_read <= 1;
+		 if(result_zero) begin
+		    output_reg <= 0;
+		    out_valid <= 1;
+		    data_read <= 0;
+		 end
+	      end
 	   end else if(switch) begin
 	      if(mod_rdy == 0) begin
 		 mult_output_reg <= mult_output_wire;
