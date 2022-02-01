@@ -62,9 +62,10 @@ module encrypting_entity #(parameter SIZE = 64)
    wire 		     input_read;
    wire 		     input_rdy = input_p_tvalid & input_a_key_tvalid & input_m_tvalid;
 
-   reg 			     reset;
+   reg 			     reset = 0;
    wire 		     finish;
 
+   wire 		     rst_mult, rst_rng, rst_mod_exp;
    reg 			     out_valid;
    
    assign input_read = data_read;
@@ -74,7 +75,8 @@ module encrypting_entity #(parameter SIZE = 64)
 
    assign rst_rng = reset;
    assign rst_mod_exp = reset;
-
+   assign rst_mult = reset;
+   
    assign output_a_tvalid = out_valid;
    assign output_b_tvalid = out_valid;
    
@@ -114,7 +116,7 @@ module encrypting_entity #(parameter SIZE = 64)
 				 .input_multiplicand_tvalid(run_encryption), 
 				 .input_modulus_tdata(p), 
 				 .input_modulus_tvalid(run_encryption), 
-				 .output_tdata(cryptogram), 
+				 .output_tdata(cryptogram_wire), 
 				 .output_tvalid(finish), 
 				 .output_tready(run_encryption)
 				 );   
