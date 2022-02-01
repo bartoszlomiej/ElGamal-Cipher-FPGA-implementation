@@ -129,7 +129,6 @@ module decrypting_entity #(parameter SIZE = 64)
 		 end
 	      end
 	   end else begin // if (!state)
-	      $display("walcze");
 	      
 	      //part 2 - decryption
 	   end
